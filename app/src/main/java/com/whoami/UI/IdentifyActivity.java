@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -13,6 +14,7 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -28,7 +30,9 @@ import com.whoami.helpers.GsonHelper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -96,7 +100,7 @@ public class IdentifyActivity extends AppCompatActivity {
                                 REQUEST_CAMERA_PERMISSION);
                     }else {
                         Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-//                        intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+                        intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
                         startActivityForResult(intent, TAKE_IMAGE);
                     }
@@ -110,42 +114,27 @@ public class IdentifyActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Bitmap bitmap;
 
         switch (requestCode) {
             case PICK_IMAGE_GALLERY:
                 if (resultCode == RESULT_OK && data != null && data.getData() != null){
                     Uri uri = data.getData();
-                    try {
-                        bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                        imageView.setImageBitmap(bitmap);
-                        detectAndFrame(bitmap);
-                        outputFileUri = uri;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    saveImageCopy(uri);
                 }
 
                 break;
 
             case TAKE_IMAGE:
-                if (resultCode == RESULT_OK) {
-                    try {
-                        bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),outputFileUri);
-                        imageView.setImageBitmap(bitmap);
-//                        bitmap = Bitmap.createScaledBitmap(bitmap);
-                        detectAndFrame(bitmap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                if (resultCode == RESULT_OK)
+                    saveImageCopy(outputFileUri);
+
                 break;
 
             case REQUEST_CAMERA_PERMISSION:
                 if (resultCode == PackageManager.PERMISSION_GRANTED) {
                     Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-//                        intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+                    intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
                     startActivityForResult(intent, TAKE_IMAGE);
                 }
                 break;
@@ -160,6 +149,60 @@ public class IdentifyActivity extends AppCompatActivity {
         }
     }
 
+    private void saveImageCopy(Uri uri){
+
+        try{
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+            // Assuming a big image to resize
+            // Assuming width and height in same ratio
+            // Also u need to change image at specified URI, coz i'm
+            // accessing images later via URI, not bitmaps
+
+            int h1 = bitmap.getHeight();
+            int h2 = displayMetrics.heightPixels;
+
+            int w1 = bitmap.getWidth();
+            int w2 = displayMetrics.widthPixels;
+
+            if (h1>h2 || w1>w2) {
+                bitmap = Bitmap.createScaledBitmap(bitmap,w1/4,h1/4,false);
+
+                if (uri.toString().contains("content")){ // From gallery
+                    String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+                    Cursor cursor = getContentResolver().query(uri,
+                            filePathColumn, null, null, null);
+                    cursor.moveToFirst();
+
+                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                    outputFileUri = Uri.parse(cursor.getString(columnIndex));
+                    uri = Uri.parse(cursor.getString(columnIndex));
+                    cursor.close();
+                }
+
+                // Re writing data
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, stream);
+                byte[] byteArray = stream.toByteArray();
+
+                FileOutputStream overWrite = new FileOutputStream(uri.getPath(), false);
+                overWrite.write(byteArray);
+                overWrite.flush();
+                overWrite.close();
+            }
+
+            outputFileUri = uri;
+
+            imageView.setImageBitmap(bitmap);
+            detectAndFrame(bitmap);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private void detectAndFrame(final Bitmap imageBitmap){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

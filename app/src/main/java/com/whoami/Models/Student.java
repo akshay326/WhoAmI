@@ -1,34 +1,9 @@
 package com.whoami.Models;
 
-import java.util.List;
-
-/**
- * Created by akshay on 1/1/18.
- *
- * Change the model structure to a student
- */
-
 public class Student {
-    private String personId;
-    private List<String> persistedFaceIds;
     private String name;
-    private String userData;
+    private String userData; // All Adhar Info
 
-    public String getPersonId() {
-        return personId;
-    }
-
-    public void setPersonId(String personId) {
-        this.personId = personId;
-    }
-
-    public List<String> getPersistedFaceIds() {
-        return persistedFaceIds;
-    }
-
-    public void setPersistedFaceIds(List<String> persistedFaceIds) {
-        this.persistedFaceIds = persistedFaceIds;
-    }
 
     public String getName() {
         return name;
@@ -42,7 +17,10 @@ public class Student {
         return userData;
     }
 
-    public void setUserData(String userData) {
-        this.userData = userData;
+    public Student(String xml){
+        int i = xml.lastIndexOf("name=\"");
+        int j = xml.indexOf("gender");
+        name = xml.substring(i,j);
+        userData = xml;
     }
 }

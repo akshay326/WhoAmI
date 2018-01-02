@@ -11,14 +11,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.microsoft.projectoxford.face.FaceServiceClient;
 import com.microsoft.projectoxford.face.contract.AddPersistedFaceResult;
 import com.microsoft.projectoxford.face.contract.CreatePersonResult;
 import com.microsoft.projectoxford.face.contract.Face;
-import com.microsoft.projectoxford.face.contract.TrainingStatus;
+import com.whoami.Models.Student;
 import com.whoami.R;
 import com.whoami.helpers.Auth;
 import com.whoami.helpers.GsonHelper;
@@ -35,14 +36,13 @@ import static com.whoami.Utils.Constants.*;
 
 public class AddActivity extends AppCompatActivity {
 
-    @BindView(R.id.NameAddPerson) TextView PersonName;
-    @BindView(R.id.DescriptionAddPerson) TextView Description;
     @BindView(R.id.buttonAddPerson) Button submitButton;
     @BindView(R.id.imageAddPerson) ImageView personImage;
 
     private static Face face;
     private static ByteArrayOutputStream outputStream;
     private FaceServiceClient faceServiceClient;
+    private Student student;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,30 +66,34 @@ public class AddActivity extends AppCompatActivity {
 
         }catch (Exception e){e.printStackTrace();}
 
+        final IntentIntegrator i =new IntentIntegrator(this);
+        i.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
+        i.setOrientationLocked(false);
+        i.setBeepEnabled(true);
+        i.setPrompt("Scan a QR Code");
+
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                boolean flag1=true, flag2 = true;
-
-                if (PersonName.getText().length()<4) {
-                    flag1 = false;
-                    PersonName.setError("Enter Valid Name");
-                }
-
-                if (Description.getText().length()<10){
-                    flag2 = false;
-                    Description.setError("Enter Valid Description");
-                }
-
-                if (flag1 && flag2)
-                    createPerson();
+                i.initiateScan();
             }
         });
 
+
     }
 
-    // TODO Read data from adhar and use GsonHelper for uData
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if(result != null && result.getContents().length() > 30
+                && result.getContents().contains("uid")
+                && result.getContents().contains("yob")) { // safe size check
+            student = new Student(result.getContents());
+            createPerson();
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
 
     private void createPerson(){
 
@@ -100,8 +104,8 @@ public class AddActivity extends AppCompatActivity {
                 try {
                     person = faceServiceClient.createPerson(
                             person_group_id,
-                            PersonName.getText()+"",         // person name
-                            Description.getText()+""       // person data
+                            student.getName(),         // person name
+                            student.getUserData()       // person data
                     );
                 }catch (Exception e){
                     e.printStackTrace();
@@ -136,7 +140,7 @@ public class AddActivity extends AppCompatActivity {
                             person_group_id,
                             person.personId,
                             new ByteArrayInputStream(outputStream.toByteArray()),
-                            Description.getText()+"",
+                            student.getUserData(), // Person data
                             face.faceRectangle
                     );
 

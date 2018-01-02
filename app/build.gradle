@@ -33,5 +33,5 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
-    compile 'com.dlazaro66.qrcodereaderview:qrcodereaderview:2.0.3' // For QR Code
+    compile 'com.journeyapps:zxing-android-embedded:3.5.0' // For QR Code
 }
