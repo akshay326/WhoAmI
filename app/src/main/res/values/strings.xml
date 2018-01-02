@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Who Am I</string>
+    <string name="api_end_point">https://westcentralus.api.cognitive.microsoft.com/face/v1.0/</string>
+    <string name="subs_key">c2c08d8dffa7492b99915e806488a4e6</string>
+
+</resources>
