@@ -114,19 +114,29 @@ public class IdentifyActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Bitmap bitmap;
 
         switch (requestCode) {
             case PICK_IMAGE_GALLERY:
                 if (resultCode == RESULT_OK && data != null && data.getData() != null){
-                    Uri uri = data.getData();
-                    saveImageCopy(uri);
+                    try {
+                        Uri uri = data.getData();
+                        bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                        imageView.setImageBitmap(bitmap);
+                        detectAndFrame(bitmap);
+                        outputFileUri = uri;
+                    }catch (IOException e){e.printStackTrace();}
                 }
 
                 break;
 
             case TAKE_IMAGE:
                 if (resultCode == RESULT_OK)
-                    saveImageCopy(outputFileUri);
+                    try {
+                        bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), outputFileUri);
+                        imageView.setImageBitmap(bitmap);
+                        detectAndFrame(bitmap);
+                    }catch (IOException e){e.printStackTrace();}
 
                 break;
 
@@ -149,60 +159,60 @@ public class IdentifyActivity extends AppCompatActivity {
         }
     }
 
-    private void saveImageCopy(Uri uri){
-
-        try{
-            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-
-            // Assuming a big image to resize
-            // Assuming width and height in same ratio
-            // Also u need to change image at specified URI, coz i'm
-            // accessing images later via URI, not bitmaps
-
-            int h1 = bitmap.getHeight();
-            int h2 = displayMetrics.heightPixels;
-
-            int w1 = bitmap.getWidth();
-            int w2 = displayMetrics.widthPixels;
-
-            if (h1>h2 || w1>w2) {
-                bitmap = Bitmap.createScaledBitmap(bitmap,w1/4,h1/4,false);
-
-                if (uri.toString().contains("content")){ // From gallery
-                    String[] filePathColumn = { MediaStore.Images.Media.DATA };
-
-                    Cursor cursor = getContentResolver().query(uri,
-                            filePathColumn, null, null, null);
-                    cursor.moveToFirst();
-
-                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                    outputFileUri = Uri.parse(cursor.getString(columnIndex));
-                    uri = Uri.parse(cursor.getString(columnIndex));
-                    cursor.close();
-                }
-
-                // Re writing data
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, stream);
-                byte[] byteArray = stream.toByteArray();
-
-                FileOutputStream overWrite = new FileOutputStream(uri.getPath(), false);
-                overWrite.write(byteArray);
-                overWrite.flush();
-                overWrite.close();
-            }
-
-            outputFileUri = uri;
-
-            imageView.setImageBitmap(bitmap);
-            detectAndFrame(bitmap);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//    private void saveImageCopy(Uri uri){
+//
+//        try{
+//            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
+//            DisplayMetrics displayMetrics = new DisplayMetrics();
+//            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//
+//            // Assuming a big image to resize
+//            // Assuming width and height in same ratio
+//            // Also u need to change image at specified URI, coz i'm
+//            // accessing images later via URI, not bitmaps
+//
+//            int h1 = bitmap.getHeight();
+//            int h2 = displayMetrics.heightPixels;
+//
+//            int w1 = bitmap.getWidth();
+//            int w2 = displayMetrics.widthPixels;
+//
+//            if (h1>h2 || w1>w2) {
+//                bitmap = Bitmap.createScaledBitmap(bitmap,w1/4,h1/4,false);
+//
+//                if (uri.toString().contains("content")){ // From gallery
+//                    String[] filePathColumn = { MediaStore.Images.Media.DATA };
+//
+//                    Cursor cursor = getContentResolver().query(uri,
+//                            filePathColumn, null, null, null);
+//                    cursor.moveToFirst();
+//
+//                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+//                    outputFileUri = Uri.parse(cursor.getString(columnIndex));
+//                    uri = Uri.parse(cursor.getString(columnIndex));
+//                    cursor.close();
+//                }
+//
+//                // Re writing data
+//                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, stream);
+//                byte[] byteArray = stream.toByteArray();
+//
+//                FileOutputStream overWrite = new FileOutputStream(uri.getPath(), false);
+//                overWrite.write(byteArray);
+//                overWrite.flush();
+//                overWrite.close();
+//            }
+//
+//            outputFileUri = uri;
+//
+//            imageView.setImageBitmap(bitmap);
+//            detectAndFrame(bitmap);
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     private void detectAndFrame(final Bitmap imageBitmap){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
