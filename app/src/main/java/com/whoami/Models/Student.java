@@ -4,7 +4,6 @@ public class Student {
     private String name;
     private String userData; // All Adhar Info
 
-
     public String getName() {
         return name;
     }
@@ -18,8 +17,8 @@ public class Student {
     }
 
     public Student(String xml){
-        int i = xml.lastIndexOf("name=\"");
-        int j = xml.indexOf("gender");
+        int i = xml.indexOf("name=") + 6;
+        int j = xml.indexOf("gender")-2;
         name = xml.substring(i,j);
         userData = xml;
     }

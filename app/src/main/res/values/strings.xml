@@ -3,4 +3,8 @@
     <string name="api_end_point">https://westcentralus.api.cognitive.microsoft.com/face/v1.0/</string>
     <string name="subs_key">c2c08d8dffa7492b99915e806488a4e6</string>
 
+    <string name="landing_how_to" formatted="true"><u><b>How it works?</b></u></string>
+    <string name="scanning">Scanning &#8230;</string>
+    <string name="interim_face_image">Interim Face Image</string>
+    <string name="scan_your_adhar_qr_code">Scan your Adhar QR code</string>
 </resources>

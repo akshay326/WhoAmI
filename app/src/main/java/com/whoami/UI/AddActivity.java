@@ -3,14 +3,12 @@ package com.whoami.UI;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -33,17 +31,16 @@ import needle.Needle;
 import needle.UiRelatedTask;
 
 import static com.whoami.Utils.Constants.*;
+import static com.whoami.helpers.ImageHelper.file_read_uri;
 
 public class AddActivity extends AppCompatActivity {
-
-    @BindView(R.id.buttonAddPerson) Button submitButton;
-    @BindView(R.id.imageAddPerson) ImageView personImage;
 
     private static Face face;
     private static ByteArrayOutputStream outputStream;
     private FaceServiceClient faceServiceClient;
     private Student student;
 
+    @BindView(R.id.ImageButtonAddActivity) ImageButton submitButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,17 +55,15 @@ public class AddActivity extends AppCompatActivity {
 
         // Get the image
         try {
-            Uri outputFileUri = gHelper.getUri(intent.getStringExtra(FILE_URI));
-            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), outputFileUri);
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), file_read_uri);
             outputStream = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, outputStream);
-            personImage.setImageBitmap(bitmap);
 
         }catch (Exception e){e.printStackTrace();}
 
         final IntentIntegrator i =new IntentIntegrator(this);
         i.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
-        i.setOrientationLocked(false);
+        i.setOrientationLocked(true);
         i.setBeepEnabled(true);
         i.setPrompt("Scan a QR Code");
 
@@ -79,13 +74,12 @@ public class AddActivity extends AppCompatActivity {
             }
         });
 
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if(result != null && result.getContents().length() > 30
+        if(result != null && resultCode == RESULT_OK && result.getContents().length() > 30
                 && result.getContents().contains("uid")
                 && result.getContents().contains("yob")) { // safe size check
             student = new Student(result.getContents());
@@ -157,9 +151,12 @@ public class AddActivity extends AppCompatActivity {
             protected void thenDoUiRelatedWork(AddPersistedFaceResult result){
                 Intent intent = new Intent();
 
+                // Redirect to Identify and then to Results activity
                 if (result != null) {
                     Toast.makeText(AddActivity.this, "Person Face Added", Toast.LENGTH_LONG).show();
+                    intent.putExtra(person_id,person.personId.toString());
                     setResult(RESULT_OK, intent);
+
                     Log.d("### Persisted Face ID",result.persistedFaceId+"");
                     Log.d("### Person ID",person.personId+"");
                 }

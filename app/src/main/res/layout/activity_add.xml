@@ -1,22 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:orientation="vertical"
+<RelativeLayout android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="14dp"
+    android:background="@drawable/first"
     tools:context="com.whoami.UI.AddActivity">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Click Here To Scan Your Adhar QR Code"
-        android:id="@+id/buttonAddPerson"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.1"
+        android:background="@android:color/black"/>
 
-    <ImageView
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_centerInParent="true"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/imageAddPerson"/>
+        android:background="@drawable/border"
+        android:padding="@dimen/padding_large"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/officina_book"
+            android:layout_gravity="center"
+            android:textSize="@dimen/text_l"
+            android:textColor="@color/dark_blue"
+            android:layout_marginBottom="@dimen/padding_large"
+            android:text="@string/scan_your_adhar_qr_code"/>
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ImageButtonAddActivity"
+            android:src="@drawable/camera"
+            android:layout_gravity="center"
+            android:layout_marginBottom="@dimen/padding_normal"
+            android:background="@android:color/transparent"/>
+    </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>

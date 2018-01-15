@@ -16,16 +16,9 @@ public class GsonHelper {
         gson = new Gson();
     }
 
-    public Uri getUri(String uri){
-        return Uri.parse(uri);
-    }
 
     public Face getFace(String face){
         return gson.fromJson(face,this.face);
-    }
-
-    public String setUri(Uri uri){
-        return uri.toString();
     }
 
     public String setFace(Face face){

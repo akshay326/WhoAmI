@@ -8,4 +8,12 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="StatusBarOverlay" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/turquoise</item>
+        <item name="colorPrimaryDark">@color/turquoise</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
 </resources>
